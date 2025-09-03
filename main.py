@@ -17,7 +17,24 @@ GHL_LOCATION_ID = os.environ.get('GHL_LOCATION_ID', '')
 # ========================================================
 
 app = Flask(__name__)
+# ==================== ROUTE PRINCIPALI ====================
+@app.route('/')
+def home():
+    return "🤖 Bot Telegram GHL è online! Usa /webhook/ricevi_moduli per i webhook."
 
+@app.route('/health')
+def health_check():
+    return jsonify({"status": "online", "timestamp": datetime.now().isoformat()})
+
+@app.route('/webhook/ricevi_moduli', methods=['GET', 'POST'])
+def webhook_ricevi_moduli():
+    if request.method == 'GET':
+        return "✅ Webhook endpoint attivo! Invia una POST con i dati JSON."
+    
+    try:
+        data = request.json
+        print(f"📨 WEBHOOK RICEVUTO: {json.dumps(data, indent=2)}")
+        # ... [il resto del codice webhook]
 def init_db():
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
