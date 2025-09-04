@@ -319,6 +319,26 @@ def process_update(update):
     else:
         send_message(chat_id, "❌ Comando non riconosciuto. Usa /start per vedere le opzioni.")
 
+def poll_telegram_updates():
+    """Polling per gli aggiornamenti Telegram"""
+    print("🤖 Avvio polling Telegram...")
+    last_update_id = None
+    
+    while True:
+        try:
+            updates = get_updates(last_update_id)
+            
+            if "result" in updates and updates["result"]:
+                for update in updates["result"]:
+                    last_update_id = update["update_id"] + 1
+                    process_update(update)
+            
+            time.sleep(1)
+            
+        except Exception as e:
+            print(f"❌ Errore polling: {e}")
+            time.sleep(5)
+
 def main():
     init_db()
     
@@ -328,11 +348,15 @@ def main():
     print("🌐 Webhook attivo: /webhook/ricevi_moduli")
     print("🏠 Home page: /")
     print("❤️ Health check: /health")
-    print("⏳ In attesa di richieste e moduli...")
-    print("🚀 TUTTO AUTOMATICO: Appena arriva un modulo, viene assegnato al primo in coda!")
+    print("📩 Polling Telegram attivo")
     
-    # Avvia Flask
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    # Avvia Flask in thread separato
+    flask_thread = Thread(target=lambda: app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False))
+    flask_thread.daemon = True
+    flask_thread.start()
+    
+    # Avvia polling Telegram
+    poll_telegram_updates()
 
 if __name__ == "__main__":
     main()
